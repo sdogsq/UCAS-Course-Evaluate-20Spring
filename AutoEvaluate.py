@@ -118,14 +118,53 @@ cdata = { # Post Data
     'radio_19': '',
     'item_25': ''
 }
+tdata = {
+    'item_34': 5,
+    'item_35': 5,
+    'item_37': 5,
+    'item_38': 5,
+    'item_40': 5,
+    'item_41': 5,
+    'item_42': 5,
+    'item_43': '作业（包括作业、报告、测验测试、论文等）有助于我的能力的提高',
+    'item_44': '作业（包括作业、报告、测验测试、论文等）有助于我的能力的提高',
+    'item_48': 5,
+    'item_49': 5,
+    'item_50': 5,
+    'item_52': 5,
+    'item_53': 5,
+    'item_54': 5,
+    'item_55': 5,
+    'item_56': 5,
+    'item_60': 5,
+    'item_62': 5,
+    'item_63': 5,
+    'item_64': 5,
+    'item_65': 5,
+    'item_66': 5,
+    'subjectiveCheckbox': '',
+    'subjectiveRadio': ''
+}
 
 EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/course/59585")
 
 eva = BeautifulSoup(EvaPage.text, 'lxml')
 
 hrefnum = re.compile(r"(\d+)")
-for a in eva.find_all('a', string='修改评估', href=True):
+for a in eva.find_all('a', string='评估', href=True):
     CourseNum = hrefnum.findall(a['href'])[0]
     res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum,data = cdata)
     print(CourseNum)
+    time.sleep(1)
+
+EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/teacher/59585")
+
+eva = BeautifulSoup(EvaPage.text, 'lxml')
+
+hrefnum = re.compile(r"(\d+)")
+for a in eva.find_all('a', string='评估', href=True):
+    CourseNum = hrefnum.findall(a['href'])[0]
+    TeacherNum = hrefnum.findall(a['href'])[1]
+    res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum,data = tdata)
+    print(CourseNum, TeacherNum)
     time.sleep(1)
