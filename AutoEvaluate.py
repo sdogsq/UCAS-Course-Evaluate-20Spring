@@ -4,76 +4,43 @@
 import requests
 import re
 import time
-from PIL import Image
-from io import BytesIO
-import matplotlib.pyplot as plt 
+import json
 from bs4 import BeautifulSoup
-# 请求头信息
 
-headers = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-    'Accept-Encoding':'gzip, deflate',
-    'Accept-Language': 'en',
-    'Cache-Control': 'max-age=0',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'DNT':'1',
-    'Host':'sep.ucas.ac.cn',
-    'Origin': 'http://sep.ucas.ac.cn',
-    'Referer': 'http://sep.ucas.ac.cn/',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
+onestop_data = {'username': 'Your user name', # 填入用户名
+                'password': 'Your password', # 填入密码
+                'remember': 'checked'}
+
+# ------------------- login onestop -------------------------
+onestop_link = "http://onestop.ucas.ac.cn/Ajax/Login/0"
+
+headers = { # 请求头信息
+    'X-Requested-With': 'XMLHttpRequest'
 }
 
-regex = re.compile(r"'(.*?)'")
+o = requests.Session()
+Onestop_Login = o.post(url = onestop_link, data = onestop_data, headers = headers, verify=False, timeout=10)
+res = json.loads(Onestop_Login.text)
 
-sep_link = "http://sep.ucas.ac.cn/slogin"
-
-params_nocode = {'userName':'Your User Name', # 填入用户名
-          'pwd':'Your password', #填入密码
-          'sb':'sb'}
-
-
-params_withcode = {'userName':'Your User Name',#填入用户名
-          'pwd':'Your password', #填入密码
-          'certCode': '',
-          'sb':'sb'}
-
-
-def localtime():
-    return time.asctime( time.localtime(time.time()) )
-
-
-
-s = requests.Session()
-c = requests.Session()
+if (res['f'] == False): # check login status
+    raise Exception(res['msg'])
+else:
+    print("ONESTOP LOGIN SUCCESS")
+# -------------------------------------------------------
 
 # ------------------- login sep -------------------------
 s = requests.Session()
-Sep_Login = s.post(url=sep_link, data=params_nocode,headers=headers,verify=False,timeout=10) # login
+Sep_Login = s.get(url=res['msg'],verify=False,timeout=10) # login
 sl = BeautifulSoup(Sep_Login.text, 'lxml')
 
-if (sl.find('input', attrs={'name':'certCode'}) !=None):  # verCode needed
-    vpic = s.get('http://sep.ucas.ac.cn/changePic?code='+str(int(round(time.time() * 1000))))
-    image = Image.open(BytesIO(vpic.content))
-    #image.show()
-    plt.imshow(image)
-    plt.show()
-    
-    #SendEmail(' 需要登录验证码 ','000')
-    vcode = input()
-    
-    
-    params_withcode['certCode'] = vcode
-    Sep_Login = s.post(url=sep_link, data=params_withcode,headers=headers,verify=False,timeout=10) 
-    sl = BeautifulSoup(Sep_Login.text, 'lxml')
 
 if (sl.find('a',title='退出系统') == None): # check login status
     raise Exception("Sep Login Error")
 else:
-    print(" SEP LOGIN SUCCESS")
+    print("SEP LOGIN SUCCESS")
 # -------------------------------------------------------
 
-# -------------------  login jwxk ------------------------ 
+# -------------------  login jwxk -----------------------
 jwxk = s.get('http://sep.ucas.ac.cn/portal/site/226/821')
 jwxk = BeautifulSoup(jwxk.text, 'lxml')
 j_link = jwxk.noscript.meta.attrs['content'][6:]
@@ -83,8 +50,6 @@ j_login = c.get(url=j_link,cookies = s.cookies.get_dict())
 requests.utils.add_dict_to_cookiejar(c.cookies, {'sepuser': s.cookies.get_dict()['sepuser']}) # set jwxk cookies
 # -------------------------------------------------------
 
-
-# ----------------- Evaluate Course ---------------------
 cdata = { # Post Data
     'subjectiveRadio': 22,
     'subjectiveCheckbox': 28,
@@ -146,25 +111,41 @@ tdata = {
     'subjectiveRadio': ''
 }
 
+
+# ----------------  Course Evaluation -------------------
+print('Course Evaluation')
 EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/course/59585")
-
 eva = BeautifulSoup(EvaPage.text, 'lxml')
-
 hrefnum = re.compile(r"(\d+)")
-for a in eva.find_all('a', string='评估', href=True):
-    CourseNum = hrefnum.findall(a['href'])[0]
-    res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum,data = cdata)
-    print(CourseNum)
-    time.sleep(1)
 
+for row in eva.find_all('tr'): 
+    rowa = row.find_all('a')
+    if (rowa == []): continue
+    href = rowa[3].get('href')
+    rowstr = list(map(lambda x: x.string, rowa))
+    if (rowstr[3] == '评估'):
+        CourseNum = hrefnum.findall(href)[0]
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum, data = cdata)
+        print(rowstr[0:4])
+        time.sleep(1)
+print('Done')
+    
+    
+# ----------------  Teacher Evaluation -------------------
+print('Teacher Evaluation')
 EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/teacher/59585")
-
 eva = BeautifulSoup(EvaPage.text, 'lxml')
-
 hrefnum = re.compile(r"(\d+)")
-for a in eva.find_all('a', string='评估', href=True):
-    CourseNum = hrefnum.findall(a['href'])[0]
-    TeacherNum = hrefnum.findall(a['href'])[1]
-    res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum,data = tdata)
-    print(CourseNum, TeacherNum)
-    time.sleep(1)
+
+for row in eva.find_all('tr'): 
+    rowa = row.find_all('a')
+    if (rowa == []): continue
+    href = rowa[3].get('href')
+    rowstr = list(map(lambda x: x.string, rowa))
+    if (rowstr[3] == '评估'):
+        CourseNum = hrefnum.findall(href)[0]
+        TeacherNum = hrefnum.findall(href)[1]
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum, data = tdata)
+        print(rowstr[0:4])
+        time.sleep(1)
+print('Done')
