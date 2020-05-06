@@ -1,4 +1,4 @@
-# UCAS-Course-Evaluate-19Fall
+# UCAS-Course-Evaluate-20Spring
 
 课程自动评估，2020春季学期使用，学期更换会导致评估页面`EvaPage`地址改变。
 
