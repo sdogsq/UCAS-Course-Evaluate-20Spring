@@ -125,7 +125,7 @@ for row in eva.find_all('tr'):
     rowstr = list(map(lambda x: x.string, rowa))
     if (rowstr[3] == '评估'):
         CourseNum = hrefnum.findall(href)[0]
-        res = c.post("https://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum, data = cdata)
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum, data = cdata)
         print(rowstr[0:4])
         time.sleep(1)
 print('Done')
@@ -145,7 +145,7 @@ for row in eva.find_all('tr'):
     if (rowstr[3] == '评估'):
         CourseNum = hrefnum.findall(href)[0]
         TeacherNum = hrefnum.findall(href)[1]
-        res = c.post("https://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum, data = tdata)
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum, data = tdata)
         print(rowstr[0:4])
         time.sleep(1)
 print('Done')
