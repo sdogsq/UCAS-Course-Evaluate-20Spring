@@ -124,8 +124,8 @@ for row in eva.find_all('tr'):
     href = rowa[3].get('href')
     rowstr = list(map(lambda x: x.string, rowa))
     if (rowstr[3] == '评估'):
-        CourseNum = hrefnum.findall(href)[0]
-        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/" + CourseNum, data = cdata)
+        CourseNum = hrefnum.findall(href)[1]
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveCourseEval/59586/" + CourseNum, data = cdata)
         print(rowstr[0:4])
         time.sleep(1)
 print('Done')
@@ -133,7 +133,7 @@ print('Done')
     
 # ----------------  Teacher Evaluation -------------------
 print('Teacher Evaluation')
-EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/teacher/59586")
+EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/teacher/59587")
 eva = BeautifulSoup(EvaPage.text, 'lxml')
 hrefnum = re.compile(r"(\d+)")
 
@@ -143,9 +143,9 @@ for row in eva.find_all('tr'):
     href = rowa[3].get('href')
     rowstr = list(map(lambda x: x.string, rowa))
     if (rowstr[3] == '评估'):
-        CourseNum = hrefnum.findall(href)[0]
-        TeacherNum = hrefnum.findall(href)[1]
-        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/" + CourseNum + '/' + TeacherNum, data = tdata)
+        CourseNum = hrefnum.findall(href)[1]
+        TeacherNum = hrefnum.findall(href)[2]
+        res = c.post("http://jwxk.ucas.ac.cn/evaluate/saveTeacherEval/59586/" + CourseNum + '/' + TeacherNum, data = tdata)
         print(rowstr[0:4])
         time.sleep(1)
 print('Done')
