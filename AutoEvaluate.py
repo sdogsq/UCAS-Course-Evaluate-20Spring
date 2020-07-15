@@ -7,8 +7,8 @@ import time
 import json
 from bs4 import BeautifulSoup
 
-onestop_data = {'username': 'Your user name', # 填入用户名
-                'password': 'Your password', # 填入密码
+onestop_data = {'username': 'Your Username', # 填入用户名
+                'password': 'Your Password', # 填入密码
                 'remember': 'checked'}
 
 # ------------------- login onestop -------------------------
@@ -114,7 +114,7 @@ tdata = {
 
 # ----------------  Course Evaluation -------------------
 print('Course Evaluation')
-EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/course/59586")
+EvaPage = c.get("http://jwxk.ucas.ac.cn/evaluate/course/59587")
 eva = BeautifulSoup(EvaPage.text, 'lxml')
 hrefnum = re.compile(r"(\d+)")
 
